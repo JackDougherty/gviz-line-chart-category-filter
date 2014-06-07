@@ -13,14 +13,15 @@
 google.load('visualization', '1', {packages: ['controls']});
 google.setOnLoadCallback(drawChart);
 
+//Strategy: transpose data table and change all instances of rows to columns, and vice versa
 function drawChart () {
     var data = new google.visualization.DataTable();
-    data.addColumn('string', 'Grade');
-    data.addColumn('number', 'Asian Studies');
-    data.addColumn('number', 'Batchelder');
-    data.addColumn('number', 'Burns');
-    data.addColumn('number', 'Hartford');
-    data.addRows([
+    data.addRow('string', 'Grade');
+    data.addRow('number', 'Asian Studies');
+    data.addRow('number', 'Batchelder');
+    data.addRow('number', 'Burns');
+    data.addRow('number', 'Hartford');
+    data.addColumns([
         ['Grade 3 (2007)',  59.8, 62.6, 35.6, 46.3],
         ['Grade 4 (2008)',  70.6, 48.3, 28.5, 47.8],
         ['Grade 5 (2009)',  47.3, 59.7, 41.1, 54.1],
@@ -30,18 +31,18 @@ function drawChart () {
     ]);
 
 
-    var columnsTable = new google.visualization.DataTable();
-    columnsTable.addColumn('number', 'colIndex');
-    columnsTable.addColumn('string', 'colLabel');
+    var rowsTable = new google.visualization.DataTable();
+    rowsTable.addRow('number', 'rowIndex');
+    rowsTable.addRow('string', 'rowLabel');
     var initState= {selectedValues: []};
-    // put the columns into this data table (skip column 0)
-    for (var i = 1; i < data.getNumberOfColumns(); i++) {
-        columnsTable.addRow([i, data.getColumnLabel(i)]);
+    // put the row into this data table (skip rows 0)
+    for (var i = 1; i < data.getNumberOfRows(); i++) {
+        rowsTable.addColumn([i, data.getRowLabel(i)]);
         // you can comment out this next line if you want to have a default selection other than the whole list
-        initState.selectedValues.push(data.getColumnLabel(i));
+        initState.selectedValues.push(data.getRowLabel(i));
     }
-    // you can set individual columns to be the default columns (instead of populating via the loop above) like this:
-    // initState.selectedValues.push(data.getColumnLabel(4));
+    // you can set individual rows to be the default rows (instead of populating via the loop above) like this:
+    // initState.selectedValues.push(data.getRowLabel(4));
     
     var chart = new google.visualization.ChartWrapper({
         chartType: 'LineChart',
@@ -54,14 +55,14 @@ function drawChart () {
         }
     });
     
-    var columnFilter = new google.visualization.ControlWrapper({
+    var rowFilter = new google.visualization.ControlWrapper({
         controlType: 'CategoryFilter',
-        containerId: 'colFilter_div',
-        dataTable: columnsTable,
+        containerId: 'rowFilter_div',
+        dataTable: rowsTable,
         options: {
-            filterColumnLabel: 'colLabel',
+            filterRowLabel: 'rowLabel',
             ui: {
-                label: 'Columns',
+                label: 'Rows',
                 allowTyping: false,
                 allowMultiple: true,
                 allowNone: false,
@@ -72,26 +73,26 @@ function drawChart () {
     });
     
     function setChartView () {
-        var state = columnFilter.getState();
-        var row;
+        var state = rowFilter.getState();
+        var column;
         var view = {
-            columns: [0]
+            rows: [0]
         };
         for (var i = 0; i < state.selectedValues.length; i++) {
-            row = columnsTable.getFilteredRows([{column: 1, value: state.selectedValues[i]}])[0];
-            view.columns.push(columnsTable.getValue(row, 0));
+            column = rowsTable.getFilteredColumn([{row: 1, value: state.selectedValues[i]}])[0];
+            view.rows.push(rowsTable.getValue(column, 0));
         }
         // sort the indices into their original order
-        view.columns.sort(function (a, b) {
+        view.rows.sort(function (a, b) {
             return (a - b);
         });
         chart.setView(view);
         chart.draw();
     }
-    google.visualization.events.addListener(columnFilter, 'statechange', setChartView);
+    google.visualization.events.addListener(rowFilter, 'statechange', setChartView);
     
     setChartView();
-    columnFilter.draw();
+    rowFilter.draw();
 }
 
  </script>
@@ -99,7 +100,7 @@ function drawChart () {
   <body>
       <!-- This div will hold the chart. Modify your own text and links -->
       <h3>Insert title here</h3>
-    <div id="colFilter_div"></div>
+    <div id="rowFilter_div"></div>
   <div id="chart_div"></div>
   <p>Data source: Achieve Hartford. Visualization by Marissa Block (Trinity College '14), <a href="http://commons.trincoll.edu/dataviz" target="_blank">DataViz seminar</a>. See<a href="https://github.com/JackDougherty/gviz-line-chart-category-filter" target="_blank"> code on GitHub</a>.</p>
   <div id="creativeCommons" style="text-align: center; width: 400px;">
